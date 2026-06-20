@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--
+    ╔══════════════════════════════════════════════════════════╗
+    ║     VANTIS INTERSTELLAR FLEET PACKAGE — VAMSYS v2.6.0   ║
+    ║     Self-Contained Single-File Web Application           ║
+    ╠══════════════════════════════════════════════════════════╣
+    ║  DEPLOYMENT:                                             ║
+    ║  • Upload this single file to any web server             ║
+    ║  • Works on Apache, Nginx, IIS, Netlify, Vercel,         ║
+    ║    GitHub Pages, AWS S3, Cloudfront, Azure Static        ║
+    ║  • No dependencies, no build step, no npm install        ║
+    ║  • Rename to index.html for root-level serving           ║
+    ╠══════════════════════════════════════════════════════════╣
+    ║  DEFAULT CREDENTIALS:                                    ║
+    ║  Operator ID : VANTIS-OPS                                ║
+    ║  Access Code : VX2026                                    ║
+    ║  (Change in JS — search for: DEFAULT_CREDENTIALS)        ║
+    ╠══════════════════════════════════════════════════════════╣
+    ║  API INTEGRATION:                                        ║
+    ║  Use ⚙ API CONFIG panel to connect a live endpoint.      ║
+    ║  Expected JSON: array of fleet objects (see schema).     ║
+    ╠══════════════════════════════════════════════════════════╣
+    ║  © 2026 VANTIS INTERSTELLAR OPERATIONS                   ║
+    ║  CLASSIFICATION: INTERNAL — AIRGRID INTELLIGENCE         ║
+    ╚══════════════════════════════════════════════════════════╝
+    -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="VANTIS Interstellar Fleet Package — VAMSYS Fleet Intelligence Platform" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#7c3aed" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230a0a14' stroke='%237c3aed' stroke-width='2'/%3E%3Cpath d='M10 8L16 26L22 8' fill='none' stroke='%23a78bfa' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <title>VANTIS Interstellar Fleet Package — VAMSYS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              vbg: { 1: '#0a0a14', 2: '#0f0f1e', 3: '#13131f', 4: '#1a1a2e' },
+              vborder: '#1e1e35',
+              vviolet: { light: '#a78bfa', base: '#7c3aed', glow: '#6d28d9', deep: '#5b21b6' },
+              vcyan: '#22d3ee',
+              vtext: { 1: '#f1f0ff', 2: '#9ca3af', 3: '#4b5563' },
+              vgreen: '#10b981',
+              vamber: '#f59e0b',
+              vblue: '#3b82f6',
+              vgray: '#6b7280',
+              vdelivery: '#8b5cf6',
+              vcyandark: '#06b6d4',
+            },
+            fontFamily: {
+              raj: ['Rajdhani', 'sans-serif'],
+              mono: ['Space Mono', 'monospace'],
+              inter: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg1: #0a0a14; --bg2: #0f0f1e; --bg3: #13131f; --bg4: #1a1a2e;
+        --border: #1e1e35; --violet: #7c3aed; --violet-light: #a78bfa;
+        --violet-glow: #6d28d9; --cyan: #22d3ee; --text1: #f1f0ff;
+        --text2: #9ca3af; --text3: #4b5563; --green: #10b981;
+        --amber: #f59e0b; --blue: #3b82f6; --gray: #6b7280;
+        --delivery: #8b5cf6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        background: var(--bg1); color: var(--text1); font-family: 'Inter', sans-serif;
+        margin: 0; min-height: 100vh;
+      }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg2); }
+      ::-webkit-scrollbar-thumb { background: var(--violet-glow); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--violet); }
+
+      .scanline-overlay {
+        background-image:
+          repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(124,58,237,0.03) 2px, rgba(124,58,237,0.03) 4px),
+          repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(124,58,237,0.04) 40px, rgba(124,58,237,0.04) 41px);
+        pointer-events: none; position: absolute; inset: 0; z-index: 1;
+      }
+
+      .view-panel { display: none; opacity: 0; transition: opacity 300ms ease; }
+      .view-panel.active { display: block; opacity: 1; }
+
+      .fleet-card {
+        background: var(--bg3); border: 1px solid var(--border);
+        border-radius: 12px; transition: all 0.3s ease; position: relative; overflow: hidden;
+      }
+      .fleet-card:hover, .fleet-card.highlighted {
+        border-color: var(--violet);
+        box-shadow: 0 0 20px rgba(124,58,237,0.35), 0 0 40px rgba(124,58,237,0.15);
+      }
+      .fleet-card.highlighted {
+        animation: pulseGlow 1.5s ease-in-out 3;
+      }
+      @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.35); }
+        50% { box-shadow: 0 0 35px rgba(124,58,237,0.6), 0 0 60px rgba(124,58,237,0.25); }
+      }
+
+      .status-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 2px 10px; border-radius: 9999px; font-size: 11px;
+        font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: 0.5px;
+      }
+      .status-ACTIVE { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+      .status-MAINTENANCE { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+      .status-CHARTER { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+      .status-STANDBY { background: rgba(107,114,128,0.15); color: #6b7280; border: 1px solid rgba(107,114,128,0.3); }
+      .status-DELIVERY { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+
+      .class-badge {
+        font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+        padding: 2px 8px; border-radius: 4px; letter-spacing: 1px;
+      }
+      .class-FOUNDING { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+      .class-EXPANSION_I { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
+      .class-EXPANSION_II { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.25); }
+      .class-MERIDIAN { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.25); }
+      .class-NOVA { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+      .class-APEX { background: rgba(241,240,255,0.1); color: #f1f0ff; border: 1px solid rgba(241,240,255,0.2); }
+
+      .hud-label {
+        font-family: 'Space Mono', monospace; font-size: 10px; color: var(--cyan);
+        letter-spacing: 1.5px; text-transform: uppercase;
+      }
+      .hud-value {
+        font-family: 'Space Mono', monospace; font-size: 13px; color: var(--text1);
+      }
+
+      .tab-btn {
+        font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 14px;
+        letter-spacing: 2px; padding: 8px 20px; border: 1px solid var(--border);
+        background: var(--bg3); color: var(--text2); cursor: pointer;
+        transition: all 0.2s ease; text-transform: uppercase; position: relative;
+      }
+      .tab-btn:hover { color: var(--text1); border-color: var(--violet); }
+      .tab-btn.active {
+        color: var(--violet-light); border-color: var(--violet);
+        background: rgba(124,58,237,0.1);
+        box-shadow: 0 2px 10px rgba(124,58,237,0.2);
+      }
+      .tab-btn.active::after {
+        content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%;
+        height: 2px; background: var(--violet);
+      }
+
+      .table-header-cell {
+        cursor: pointer; user-select: none; white-space: nowrap;
+        transition: color 0.2s;
+      }
+      .table-header-cell:hover { color: var(--violet-light); }
+
+      .emblem-card { transition: transform 0.3s ease; }
+      .emblem-card:hover { transform: scale(1.02); }
+      .emblem-svg { transition: transform 0.5s ease; }
+      .emblem-card:hover .emblem-svg { transform: rotate(5deg) scale(1.05); }
+
+      .tag-chip {
+        font-family: 'Space Mono', monospace; font-size: 10px;
+        padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;
+        background: rgba(124,58,237,0.12); color: var(--violet-light);
+        border: 1px solid rgba(124,58,237,0.2);
+      }
+
+      .detail-panel {
+        max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease;
+      }
+      .detail-panel.open { max-height: 300px; padding-top: 12px; }
+
+      .modal-overlay {
+        position: fixed; inset: 0; background: rgba(10,10,20,0.85);
+        z-index: 100; display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+      .modal-overlay.open { display: flex; }
+
+      .filter-select {
+        background: var(--bg3); border: 1px solid var(--border); color: var(--text1);
+        font-family: 'Space Mono', monospace; font-size: 11px; padding: 8px 12px;
+        border-radius: 6px; outline: none; cursor: pointer;
+        appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 10px center;
+        padding-right: 28px;
+      }
+      .filter-select:focus { border-color: var(--violet); }
+
+      .search-input {
+        background: var(--bg3); border: 1px solid var(--border); color: var(--text1);
+        font-family: 'Space Mono', monospace; font-size: 12px; padding: 8px 12px 8px 36px;
+        border-radius: 6px; outline: none; width: 100%;
+      }
+      .search-input:focus { border-color: var(--violet); box-shadow: 0 0 10px rgba(124,58,237,0.2); }
+      .search-input::placeholder { color: var(--text3); }
+
+      @media (max-width: 767px) {
+        .tab-btn { font-size: 11px; padding: 6px 10px; letter-spacing: 1px; }
+      }
+
+      /* ─── LOGIN GATE ─── */
+      #login-gate {
+        position: fixed; inset: 0; z-index: 9999; background: #0a0a14;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity 600ms ease;
+      }
+      #login-gate.fade-out { opacity: 0; pointer-events: none; }
+      #login-gate .gate-scanline {
+        background-image:
+          repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(124,58,237,0.03) 2px, rgba(124,58,237,0.03) 4px),
+          repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(124,58,237,0.04) 40px, rgba(124,58,237,0.04) 41px);
+        position: absolute; inset: 0; pointer-events: none;
+      }
+      .login-input {
+        background: #0f0f1e; border: 1px solid #7c3aed; color: #a78bfa;
+        font-family: 'Space Mono', monospace; padding: 12px 16px;
+        border-radius: 6px; outline: none; width: 100%; font-size: 13px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .login-input:focus { border-color: #a78bfa; box-shadow: 0 0 15px rgba(124,58,237,0.3); }
+      .login-input::placeholder { color: #4b5563; }
+      .auth-btn {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #f1f0ff;
+        font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px;
+        letter-spacing: 2px; padding: 12px 32px; border: 1px solid #a78bfa;
+        border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
+        box-shadow: 0 0 20px rgba(124,58,237,0.3);
+      }
+      .auth-btn:hover {
+        box-shadow: 0 0 30px rgba(124,58,237,0.5), 0 0 60px rgba(124,58,237,0.2);
+        transform: translateY(-1px);
+      }
+      @keyframes shakeForm {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+        20%, 40%, 60%, 80% { transform: translateX(8px); }
+      }
+      .shake { animation: shakeForm 0.5s ease-in-out; }
+
+      /* ─── API CONFIG PANEL ─── */
+      #api-config-panel {
+        position: fixed; top: 0; right: -360px; width: 340px; height: 100%;
+        background: var(--bg2); border-left: 1px solid var(--border);
+        z-index: 90; transition: right 0.3s ease; overflow-y: auto;
+        box-shadow: -4px 0 30px rgba(0,0,0,0.5);
+      }
+      #api-config-panel.open { right: 0; }
+      #api-config-backdrop {
+        position: fixed; inset: 0; background: rgba(10,10,20,0.5);
+        z-index: 89; display: none; backdrop-filter: blur(2px);
+      }
+      #api-config-backdrop.open { display: block; }
+      .api-input {
+        background: var(--bg3); border: 1px solid var(--border); color: var(--text1);
+        font-family: 'Space Mono', monospace; font-size: 11px; padding: 8px 12px;
+        border-radius: 6px; outline: none; width: 100%;
+      }
+      .api-input:focus { border-color: var(--violet); }
+      .api-input::placeholder { color: var(--text3); }
+      .api-radio-label {
+        font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text2);
+        cursor: pointer; display: flex; align-items: center; gap: 8px;
+      }
+      .api-radio-label input[type="radio"] {
+        accent-color: var(--violet);
+      }
+      .sync-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-family: 'Space Mono', monospace; font-size: 10px;
+        padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.5px;
+      }
+      .sync-local { background: rgba(107,114,128,0.15); color: #6b7280; border: 1px solid rgba(107,114,128,0.3); }
+      .sync-live { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+      @keyframes livePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+      .live-dot { animation: livePulse 1.5s ease-in-out infinite; }
+
+      /* ─── PRINT STYLES ─── */
+      @media print {
+        #login-gate, #main-header-h8x2, #nav-tabs-n4r2, #filter-bar-f2x9,
+        #footer-f0g1, #export-modal-m9z1, #print-modal-p1m1, #api-config-panel,
+        #api-config-backdrop, .detail-toggle, .tab-btn, .mobile-menu-m1n2,
+        #mobile-menu-m1n2, button { display: none !important; }
+
+        body {
+          background: white !important; color: black !important;
+          font-family: 'Inter', Arial, sans-serif !important;
+        }
+        body.print-mode .view-panel { display: none !important; }
+        body.print-mode #view-cards-v2b2 { display: block !important; opacity: 1 !important; }
+
+        #print-header-ph1 {
+          display: block !important; text-align: center; padding: 20px 0;
+          border-bottom: 2px solid #ccc; margin-bottom: 20px;
+          font-family: 'Rajdhani', sans-serif; font-size: 14px; color: #333;
+          letter-spacing: 3px;
+        }
+
+        .fleet-card {
+          background: white !important; border: 1px solid #ccc !important;
+          box-shadow: none !important; page-break-inside: avoid;
+          color: black !important; border-radius: 8px !important;
+        }
+        .fleet-card * { color: black !important; }
+        .fleet-card .hud-label { color: #555 !important; }
+        .fleet-card .hud-value { color: #111 !important; }
+        .fleet-card .tag-chip {
+          background: #f0f0f0 !important; color: #333 !important;
+          border-color: #ccc !important;
+        }
+
+        .status-pill { font-size: 10px !important; }
+        .status-ACTIVE { background: #d1fae5 !important; color: #065f46 !important; border-color: #6ee7b7 !important; }
+        .status-MAINTENANCE { background: #fef3c7 !important; color: #92400e !important; border-color: #fcd34d !important; }
+        .status-CHARTER { background: #dbeafe !important; color: #1e40af !important; border-color: #93c5fd !important; }
+        .status-STANDBY { background: #f3f4f6 !important; color: #374151 !important; border-color: #d1d5db !important; }
+        .status-DELIVERY { background: #ede9fe !important; color: #5b21b6 !important; border-color: #c4b5fd !important; }
+
+        body.print-layout-2 #cards-grid-g5e7 {
+          grid-template-columns: 1fr !important; gap: 16px !important;
+        }
+        body.print-layout-4 #cards-grid-g5e7 {
+          grid-template-columns: 1fr 1fr !important; gap: 12px !important;
+        }
+        body.print-layout-4 .fleet-card { font-size: 10px !important; }
+        body.print-layout-4 .fleet-card h3 { font-size: 16px !important; }
+
+        @page { margin: 1cm; }
+        body { counter-reset: page-num; }
+        .fleet-card::after {
+          counter-increment: page-num;
+        }
+      }
+
+      #print-header-ph1 { display: none; }
+    </style>
+</head>
+<body data-id="0" class="bg-vbg-1 text-vtext-1 font-inter">
+    <app-icon data-id="1" hidden data-icon="plane" data-palette="Dark"></app-icon>
+
+    <!-- PRINT HEADER (visible only in print) -->
+    <div data-id="2" id="print-header-ph1">VANTIS AIR CARGO — VAMSYS FLEET REGISTRY — CONFIDENTIAL</div>
+
+    <!-- ═══ LOGIN GATE ═══ -->
+    <div data-id="3" id="login-gate">
+        <div data-id="4" class="gate-scanline"></div>
+        <div data-id="5" class="relative z-10 flex flex-col items-center w-full max-w-sm px-6">
+            <svg data-id="6" width="72" height="72" viewBox="0 0 48 48" class="mb-6">
+                <defs data-id="7">
+                    <linearGradient data-id="8" id="gate-vgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop data-id="9" offset="0%" stop-color="#a78bfa"/>
+                        <stop data-id="10" offset="100%" stop-color="#7c3aed"/>
+                    </linearGradient>
+                </defs>
+                <circle data-id="11" cx="24" cy="24" r="23" fill="none" stroke="url(#gate-vgrad)" stroke-width="1.5"/>
+                <path data-id="12" d="M14 14 L24 36 L34 14" fill="none" stroke="url(#gate-vgrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-id="13" d="M6 20 Q24 8 42 20" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <h1 data-id="14" class="font-raj font-bold text-xl tracking-widest text-vtext-1 mb-1">VAMSYS</h1>
+            <p data-id="15" class="font-mono text-[10px] text-vviolet-light tracking-widest mb-1">FLEET INTELLIGENCE PLATFORM</p>
+            <p data-id="16" class="font-mono text-[9px] text-vtext-3 tracking-wider mb-8">CLASSIFIED ACCESS // VANTIS INTERSTELLAR OPS</p>
+
+            <div data-id="17" id="login-form-lf1" class="w-full flex flex-col gap-4">
+                <div data-id="18">
+                    <label data-id="19" class="font-mono text-[10px] text-vcyan tracking-widest block mb-1.5">OPERATOR ID</label>
+                    <input data-id="20" type="text" id="login-operator-id" class="login-input" placeholder="ENTER OPERATOR ID" autocomplete="off" />
+                </div>
+                <div data-id="21">
+                    <label data-id="22" class="font-mono text-[10px] text-vcyan tracking-widest block mb-1.5">ACCESS CODE</label>
+                    <input data-id="23" type="password" id="login-access-code" class="login-input" placeholder="ENTER ACCESS CODE" autocomplete="off" />
+                </div>
+                <div data-id="24" id="login-msg" class="font-mono text-[11px] text-center h-5 tracking-wider"></div>
+                <button data-id="25" id="login-auth-btn" class="auth-btn w-full mt-1">[ AUTHENTICATE ]</button>
+            </div>
+        </div>
+        <p data-id="26" class="absolute bottom-6 left-0 right-0 text-center font-mono text-[9px] text-vtext-3 tracking-wider opacity-60 px-4">
+            VAMSYS SECURE LOGIN · VANTIS AIR CARGO FLEET INTELLIGENCE · CLASSIFICATION: RESTRICTED
+        </p>
+    </div>
+
+    <!-- HEADER -->
+    <header data-id="27" id="main-header-h8x2" class="relative bg-vbg-2 border-b border-vborder overflow-hidden">
+        <div data-id="28" class="scanline-overlay"></div>
+        <div data-id="29" class="relative z-10 max-w-[1600px] mx-auto px-4 md:px-6 py-4 md:py-5">
+            <div data-id="30" class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div data-id="31" class="flex items-center gap-3 md:gap-4">
+                    <div data-id="32" class="flex-shrink-0">
+                        <svg data-id="33" width="48" height="48" viewBox="0 0 48 48" class="md:w-14 md:h-14">
+                            <defs data-id="34">
+                                <linearGradient data-id="35" id="vlogo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop data-id="36" offset="0%" stop-color="#a78bfa"/>
+                                    <stop data-id="37" offset="100%" stop-color="#7c3aed"/>
+                                </linearGradient>
+                            </defs>
+                            <circle data-id="38" cx="24" cy="24" r="23" fill="none" stroke="url(#vlogo-grad)" stroke-width="1.5"/>
+                            <path data-id="39" d="M14 14 L24 36 L34 14" fill="none" stroke="url(#vlogo-grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path data-id="40" d="M6 20 Q24 8 42 20" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.5"/>
+                        </svg>
+                    </div>
+                    <div data-id="41">
+                        <h1 data-id="42" class="font-raj font-bold text-xl md:text-2xl tracking-wider text-vtext-1 leading-tight">VANTIS AIR CARGO</h1>
+                        <p data-id="43" class="font-mono text-[10px] md:text-xs text-vviolet-light tracking-widest">VAMSYS — FLEET INTELLIGENCE PLATFORM</p>
+                        <p data-id="44" class="font-mono text-[9px] md:text-[10px] text-vtext-3 tracking-wider mt-0.5">B777F INTERSTELLAR FLEET REGISTRY · 30 FRAMES</p>
+                    </div>
+                </div>
+                <div data-id="45" class="flex flex-col items-start md:items-end gap-2">
+                    <div data-id="46" class="flex items-center gap-3">
+                        <span data-id="47" id="sync-indicator-si1" class="sync-pill sync-local">
+                            <span data-id="48" style="width:6px;height:6px;border-radius:50%;background:#6b7280;display:inline-block"></span>LOCAL
+                        </span>
+                        <div data-id="49" class="font-mono text-xs text-vcyan tracking-wider" id="live-clock-c9k1">--:--:-- UTC</div>
+                    </div>
+                    <div data-id="50" class="flex items-center gap-2">
+                        <div data-id="51" id="status-pills-s7m3" class="flex flex-wrap gap-1.5"></div>
+                        <button data-id="52" id="api-config-btn-ac1" class="tab-btn" style="font-size:11px;padding:4px 10px;border-color:var(--cyan);color:var(--cyan);">
+                            <i data-id="53" data-lucide="settings" class="w-3 h-3 inline mr-1 align-middle"></i>API
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav data-id="54" id="nav-tabs-n4r2" class="bg-vbg-2 border-b border-vborder sticky top-0 z-50">
+        <div data-id="55" class="max-w-[1600px] mx-auto px-4 md:px-6 py-2 flex flex-wrap items-center gap-2">
+            <button data-id="56" class="tab-btn active" data-view="registry">
+                <i data-id="57" data-lucide="table-2" class="w-3 h-3 inline mr-1 align-middle"></i>
+                FLEET REGISTRY
+            </button>
+            <button data-id="58" class="tab-btn" data-view="cards">
+                <i data-id="59" data-lucide="layout-grid" class="w-3 h-3 inline mr-1 align-middle"></i>
+                VAMSYS CARDS
+            </button>
+            <button data-id="60" class="tab-btn" data-view="emblems">
+                <i data-id="61" data-lucide="shield" class="w-3 h-3 inline mr-1 align-middle"></i>
+                EMBLEM CODEX
+            </button>
+            <div data-id="62" class="flex-1"></div>
+            <button data-id="63" id="export-html-btn-eh1" class="tab-btn" style="border-color: var(--green); color: var(--green);">
+                <i data-id="64" data-lucide="download-cloud" class="w-3 h-3 inline mr-1 align-middle"></i>
+                EXPORT HTML
+            </button>
+            <button data-id="65" id="export-btn-e3k7" class="tab-btn" style="border-color: var(--cyan); color: var(--cyan);">
+                <i data-id="66" data-lucide="download" class="w-3 h-3 inline mr-1 align-middle"></i>
+                EXPORT
+            </button>
+        </div>
+    </nav>
+
+    <!-- FILTER BAR -->
+    <section data-id="67" id="filter-bar-f2x9" class="bg-vbg-1 border-b border-vborder">
+        <div data-id="68" class="max-w-[1600px] mx-auto px-4 md:px-6 py-3">
+            <div data-id="69" class="flex flex-col md:flex-row gap-2 md:gap-3 items-stretch md:items-center">
+                <div data-id="70" class="relative flex-1 min-w-0 md:max-w-xs">
+                    <i data-id="71" data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-vtext-3 pointer-events-none"></i>
+                    <input data-id="72" type="text" id="search-input-s1q4" class="search-input" placeholder="Search name, reg, class..." />
+                </div>
+                <select data-id="73" id="filter-class-f5c2" class="filter-select">
+                    <option data-id="74" value="">ALL CLASSES</option>
+                    <option data-id="75" value="FOUNDING">FOUNDING</option>
+                    <option data-id="76" value="EXPANSION I">EXPANSION I</option>
+                    <option data-id="77" value="EXPANSION II">EXPANSION II</option>
+                    <option data-id="78" value="MERIDIAN">MERIDIAN</option>
+                    <option data-id="79" value="NOVA">NOVA</option>
+                    <option data-id="80" value="APEX">APEX</option>
+                </select>
+                <select data-id="81" id="filter-status-f6s3" class="filter-select">
+                    <option data-id="82" value="">ALL STATUS</option>
+                    <option data-id="83" value="ACTIVE">ACTIVE</option>
+                    <option data-id="84" value="MAINTENANCE">MAINTENANCE</option>
+                    <option data-id="85" value="STANDBY">STANDBY</option>
+                    <option data-id="86" value="CHARTER">CHARTER</option>
+                    <option data-id="87" value="IN DELIVERY">IN DELIVERY</option>
+                </select>
+                <select data-id="88" id="filter-role-f7r4" class="filter-select">
+                    <option data-id="89" value="">ALL ROLES</option>
+                    <option data-id="90" value="TRUNK">TRUNK ROUTE</option>
+                    <option data-id="91" value="E-COMMERCE">E-COMMERCE</option>
+                    <option data-id="92" value="PHARMA">PHARMA</option>
+                    <option data-id="93" value="COLD">COLD CHAIN</option>
+                    <option data-id="94" value="HIGH-VALUE">HIGH-VALUE</option>
+                    <option data-id="95" value="FULL FREIGHTER">FULL FREIGHTER</option>
+                    <option data-id="96" value="PERISHABLE">PERISHABLE</option>
+                </select>
+                <button data-id="97" id="print-btn-pb1" class="tab-btn" style="border-color:var(--violet);color:var(--violet-light);font-size:11px;padding:6px 12px;">
+                    <i data-id="98" data-lucide="printer" class="w-3 h-3 inline mr-1 align-middle"></i>
+                    PRINT CARDS
+                </button>
+                <div data-id="99" class="font-mono text-[10px] text-vtext-3 tracking-wider self-center" id="result-count-r8c5">30 FRAMES REGISTERED</div>
+            </div>
+        </div>
+    </section>
+
+    <main data-id="100" class="max-w-[1600px] mx-auto px-4 md:px-6 py-6">
+
+        <!-- VIEW 1: FLEET REGISTRY TABLE -->
+        <div data-id="101" id="view-registry-v1a1" class="view-panel active">
+            <div data-id="102" class="overflow-x-auto rounded-xl border border-vborder">
+                <table data-id="103" class="w-full text-left" id="fleet-table-t2b3">
+                    <thead data-id="104" class="bg-vbg-4 sticky top-0 z-10">
+                        <tr data-id="105" class="font-mono text-[10px] md:text-[11px] text-vcyan tracking-wider uppercase">
+                            <th data-id="106" class="table-header-cell px-3 py-3" data-sort="id">FRAME<i data-id="107" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="108" class="table-header-cell px-3 py-3" data-sort="name">NAME<i data-id="109" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="110" class="table-header-cell px-3 py-3" data-sort="reg">REG<i data-id="111" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="112" class="table-header-cell px-3 py-3 hidden md:table-cell">TYPE</th>
+                            <th data-id="113" class="table-header-cell px-3 py-3" data-sort="class">CLASS<i data-id="114" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="115" class="table-header-cell px-3 py-3 hidden lg:table-cell" data-sort="mtow">MTOW<i data-id="116" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="117" class="table-header-cell px-3 py-3 hidden lg:table-cell" data-sort="range">RANGE<i data-id="118" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="119" class="table-header-cell px-3 py-3 hidden md:table-cell">ROLE</th>
+                            <th data-id="120" class="table-header-cell px-3 py-3" data-sort="status">STATUS<i data-id="121" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                            <th data-id="122" class="table-header-cell px-3 py-3 hidden lg:table-cell">EMBLEM</th>
+                            <th data-id="123" class="table-header-cell px-3 py-3 hidden md:table-cell" data-sort="year">YEAR<i data-id="124" data-lucide="chevrons-up-down" class="w-3 h-3 inline ml-1 align-middle"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody data-id="125" id="table-body-b4d6" class="font-mono text-xs"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VIEW 2: VAMSYS FLEET CARDS -->
+        <div data-id="126" id="view-cards-v2b2" class="view-panel">
+            <div data-id="127" id="cards-grid-g5e7" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5"></div>
+        </div>
+
+        <!-- VIEW 3: EMBLEM CODEX -->
+        <div data-id="128" id="view-emblems-v3c3" class="view-panel">
+            <div data-id="129" class="text-center mb-8">
+                <h2 data-id="130" class="font-raj font-bold text-2xl md:text-3xl tracking-wider text-vviolet-light">EMBLEM CODEX</h2>
+                <p data-id="131" class="font-mono text-xs text-vtext-2 mt-1 tracking-wider">FLEET INSIGNIA VARIANTS · 6 DESIGNATIONS</p>
+            </div>
+            <div data-id="132" id="emblems-grid-g6f8" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </main>
+
+    <!-- EXPORT MODAL -->
+    <div data-id="133" id="export-modal-m9z1" class="modal-overlay">
+        <div data-id="134" class="bg-vbg-3 border border-vborder rounded-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+            <div data-id="135" class="flex items-center justify-between px-5 py-4 border-b border-vborder">
+                <h3 data-id="136" class="font-raj font-bold text-lg tracking-wider text-vviolet-light">
+                    <i data-id="137" data-lucide="file-text" class="w-5 h-5 inline mr-2 align-middle"></i>
+                    FLEET REGISTRY EXPORT
+                </h3>
+                <button data-id="138" id="modal-close-x2y4" class="p-2 text-vtext-3 hover:text-vtext-1 transition-colors">
+                    <i data-id="139" data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div data-id="140" class="overflow-y-auto flex-1 p-5">
+                <pre data-id="141" id="export-content-c3z5" class="font-mono text-[10px] md:text-xs text-vcyan whitespace-pre-wrap leading-relaxed"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINT OPTIONS MODAL -->
+    <div data-id="142" id="print-modal-p1m1" class="modal-overlay">
+        <div data-id="143" class="bg-vbg-3 border border-vborder rounded-xl max-w-md w-full mx-4 flex flex-col">
+            <div data-id="144" class="flex items-center justify-between px-5 py-4 border-b border-vborder">
+                <h3 data-id="145" class="font-raj font-bold text-lg tracking-wider text-vviolet-light">
+                    <i data-id="146" data-lucide="printer" class="w-5 h-5 inline mr-2 align-middle"></i>
+                    VAMSYS PRINT EXPORT
+                </h3>
+                <button data-id="147" id="print-modal-close-pc1" class="p-2 text-vtext-3 hover:text-vtext-1 transition-colors">
+                    <i data-id="148" data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div data-id="149" class="p-5 space-y-5">
+                <div data-id="150">
+                    <p data-id="151" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">PRINT SCOPE</p>
+                    <div data-id="152" class="space-y-2">
+                        <label data-id="153" class="api-radio-label"><input data-id="154" type="radio" name="print-scope" value="all" checked /> ALL 30 FRAMES</label>
+                        <label data-id="155" class="api-radio-label"><input data-id="156" type="radio" name="print-scope" value="filtered" /> CURRENT FILTER SELECTION (<span data-id="157" id="print-filter-count-pf1">30</span> frames)</label>
+                        <label data-id="158" class="api-radio-label"><input data-id="159" type="radio" name="print-scope" value="active" /> ACTIVE FRAMES ONLY</label>
+                    </div>
+                </div>
+                <div data-id="160">
+                    <p data-id="161" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">LAYOUT</p>
+                    <div data-id="162" class="space-y-2">
+                        <label data-id="163" class="api-radio-label"><input data-id="164" type="radio" name="print-layout" value="2" /> 2 CARDS PER PAGE</label>
+                        <label data-id="165" class="api-radio-label"><input data-id="166" type="radio" name="print-layout" value="4" checked /> 4 CARDS PER PAGE</label>
+                    </div>
+                </div>
+                <div data-id="167">
+                    <p data-id="168" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">INCLUDE</p>
+                    <div data-id="169" class="space-y-2">
+                        <label data-id="170" class="api-radio-label"><input data-id="171" type="checkbox" id="print-inc-emblem" checked style="accent-color:var(--violet);" /> Emblem designation</label>
+                        <label data-id="172" class="api-radio-label"><input data-id="173" type="checkbox" id="print-inc-tags" checked style="accent-color:var(--violet);" /> Operational tags</label>
+                        <label data-id="174" class="api-radio-label"><input data-id="175" type="checkbox" id="print-inc-vamsys" checked style="accent-color:var(--violet);" /> VAMSYS ID</label>
+                        <label data-id="176" class="api-radio-label"><input data-id="177" type="checkbox" id="print-inc-specs" checked style="accent-color:var(--violet);" /> Technical specs (expanded)</label>
+                    </div>
+                </div>
+                <div data-id="178" class="flex gap-3 pt-2">
+                    <button data-id="179" id="print-cancel-btn-pcb1" class="tab-btn flex-1" style="text-align:center;">CANCEL</button>
+                    <button data-id="180" id="print-now-btn-pnb1" class="auth-btn flex-1" style="font-size:12px;padding:10px 16px;">PRINT NOW</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API CONFIG BACKDROP -->
+    <div data-id="181" id="api-config-backdrop"></div>
+
+    <!-- API CONFIG PANEL -->
+    <div data-id="182" id="api-config-panel">
+        <div data-id="183" class="p-5">
+            <div data-id="184" class="flex items-center justify-between mb-5">
+                <h3 data-id="185" class="font-raj font-bold text-lg tracking-wider text-vviolet-light">API CONFIGURATION</h3>
+                <button data-id="186" id="api-panel-close-apc1" class="p-2 text-vtext-3 hover:text-vtext-1 transition-colors">
+                    <i data-id="187" data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div data-id="188" class="space-y-5">
+                <div data-id="189">
+                    <p data-id="190" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">DATA SOURCE MODE</p>
+                    <div data-id="191" class="space-y-2">
+                        <label data-id="192" class="api-radio-label"><input data-id="193" type="radio" name="api-mode" value="local" checked /> LOCAL</label>
+                        <label data-id="194" class="api-radio-label"><input data-id="195" type="radio" name="api-mode" value="remote" /> REMOTE API</label>
+                    </div>
+                </div>
+                <div data-id="196">
+                    <p data-id="197" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">API ENDPOINT URL</p>
+                    <input data-id="198" type="text" id="api-url-input-au1" class="api-input" placeholder="https://api.example.com/fleet" />
+                </div>
+                <div data-id="199">
+                    <p data-id="200" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">POLL INTERVAL (seconds)</p>
+                    <input data-id="201" type="number" id="api-poll-input-ap1" class="api-input" value="30" min="5" max="600" />
+                </div>
+                <div data-id="202">
+                    <p data-id="203" class="font-mono text-[10px] text-vcyan tracking-widest mb-2">API KEY (optional)</p>
+                    <input data-id="204" type="text" id="api-key-input-ak1" class="api-input" placeholder="Enter API key..." />
+                </div>
+                <div data-id="205" class="flex gap-2">
+                    <button data-id="206" id="api-test-btn-at1" class="tab-btn flex-1" style="font-size:10px;padding:8px 10px;text-align:center;border-color:var(--cyan);color:var(--cyan);">TEST CONNECTION</button>
+                    <button data-id="207" id="api-apply-btn-aa1" class="auth-btn flex-1" style="font-size:10px;padding:8px 10px;">APPLY & RELOAD</button>
+                </div>
+                <div data-id="208" id="api-test-result-atr1" class="font-mono text-[10px] tracking-wider h-4"></div>
+                <div data-id="209" class="border-t border-vborder pt-3 space-y-1">
+                    <div data-id="210" class="flex justify-between font-mono text-[10px]">
+                        <span data-id="211" class="text-vtext-3">LAST SYNC</span>
+                        <span data-id="212" id="api-last-sync-als1" class="text-vtext-2">Never</span>
+                    </div>
+                    <div data-id="213" class="flex justify-between font-mono text-[10px]">
+                        <span data-id="214" class="text-vtext-3">STATUS</span>
+                        <span data-id="215" id="api-status-as1" class="text-vtext-2">LOCAL DATA ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE NAV MENU -->
+    <nav data-id="216" id="mobile-menu-m1n2" class="hidden fixed inset-0 bg-vbg-1/95 z-[60] flex flex-col p-6">
+        <button data-id="217" id="mobile-menu-close-c4d5" class="self-end p-2 text-vtext-2 hover:text-vtext-1">
+            <i data-id="218" data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <div data-id="219" class="flex flex-col gap-4 mt-8">
+            <button data-id="220" class="tab-btn mobile-tab" data-view="registry">FLEET REGISTRY</button>
+            <button data-id="221" class="tab-btn mobile-tab" data-view="cards">VAMSYS CARDS</button>
+            <button data-id="222" class="tab-btn mobile-tab" data-view="emblems">EMBLEM CODEX</button>
+        </div>
+    </nav>
+
+    <footer data-id="223" id="footer-f0g1" class="border-t border-vborder bg-vbg-2 mt-8">
+        <div data-id="224" class="max-w-[1600px] mx-auto px-4 md:px-6 py-6 text-center">
+            <p data-id="225" class="font-mono text-[10px] text-vtext-3 tracking-widest leading-relaxed">
+                VAMSYS · VANTIS AIR CARGO · FLEET INTELLIGENCE DIVISION<br data-id="226"/>
+                CLASSIFICATION: INTERNAL — AIRGRID INTELLIGENCE PLATFORM<br data-id="227"/>
+                REGISTRY VERSION: 2.6.0 · COMPILED: 2026-06-20 · FRAMES: 30 B77F<br data-id="228"/>
+                © 2026 VANTIS INTERSTELLAR OPERATIONS
+            </p>
+            <p data-id="229" class="font-inter text-[10px] text-vtext-3 mt-3 opacity-60">Made by Copilot</p>
+        </div>
+    </footer>
+
+    <script>
+    // ─── DEFAULT_CREDENTIALS ───
+    const DEFAULT_CREDENTIALS = { operatorId: 'VANTIS-OPS', accessCode: 'VX2026' };
+
+    // ─── LOGIN GATE ───
+    (function initLoginGate() {
+      const gate = document.getElementById('login-gate');
+      const authBtn = document.getElementById('login-auth-btn');
+      const opInput = document.getElementById('login-operator-id');
+      const acInput = document.getElementById('login-access-code');
+      const msgEl = document.getElementById('login-msg');
+      const formEl = document.getElementById('login-form-lf1');
+
+      // Check sessionStorage for existing auth
+      if (sessionStorage.getItem('vantis-auth') === 'true') {
+        gate.style.display = 'none';
+      }
+
+      function attemptAuth() {
+        const opVal = opInput.value.trim();
+        const acVal = acInput.value.trim();
+        if (opVal === DEFAULT_CREDENTIALS.operatorId && acVal === DEFAULT_CREDENTIALS.accessCode) {
+          msgEl.style.color = '#10b981';
+          msgEl.textContent = 'ACCESS GRANTED — WELCOME, OPERATOR';
+          sessionStorage.setItem('vantis-auth', 'true');
+          setTimeout(() => {
+            gate.classList.add('fade-out');
+            setTimeout(() => { gate.style.display = 'none'; }, 650);
+          }, 800);
+        } else {
+          msgEl.style.color = '#ef4444';
+          msgEl.textContent = 'AUTHENTICATION FAILED — INVALID CREDENTIALS';
+          acInput.value = '';
+          formEl.classList.add('shake');
+          setTimeout(() => formEl.classList.remove('shake'), 600);
+        }
+      }
+
+      authBtn.addEventListener('click', attemptAuth);
+      acInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptAuth(); });
+      opInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') acInput.focus(); });
+    })();
+
+    // ─── FLEET DATA ───
+    const FLEET_LOCAL = [
+      { id:'VAN001', name:'ARCTURUS',   reg:'VX-ANT001', type:'B77F', cls:'FOUNDING',      mtow:347810, range:9045, role:'APAC TRUNK',       status:'ACTIVE',       emblem:'STELLAR CROWN',  year:2018, base:'SIN — Singapore Changi' },
+      { id:'VAN002', name:'CANOPUS',    reg:'VX-ANT002', type:'B77F', cls:'FOUNDING',      mtow:347810, range:9045, role:'APAC-MEA LINK',    status:'ACTIVE',       emblem:'STELLAR CROWN',  year:2018, base:'HKG — Hong Kong Intl' },
+      { id:'VAN003', name:'RIGEL',      reg:'VX-ANT003', type:'B77F', cls:'FOUNDING',      mtow:347810, range:8900, role:'TRANS-PACIFIC',     status:'MAINTENANCE',  emblem:'STELLAR CROWN',  year:2019, base:'NRT — Tokyo Narita' },
+      { id:'VAN004', name:'ALTAIR',     reg:'VX-ANT004', type:'B77F', cls:'FOUNDING',      mtow:347810, range:9045, role:'APAC HUB',         status:'ACTIVE',       emblem:'STELLAR CROWN',  year:2019, base:'ICN — Seoul Incheon' },
+      { id:'VAN005', name:'VEGA',       reg:'VX-ANT005', type:'B77F', cls:'FOUNDING',      mtow:347810, range:9045, role:'PACIFIC BRIDGE',   status:'STANDBY',      emblem:'STELLAR CROWN',  year:2019, base:'SYD — Sydney Kingsford' },
+      { id:'VAN006', name:'DENEB',      reg:'VX-ANT006', type:'B77F', cls:'EXPANSION I',   mtow:347810, range:9045, role:'TRANSATLANTIC',    status:'ACTIVE',       emblem:'NEBULA ARC',     year:2020, base:'FRA — Frankfurt Main' },
+      { id:'VAN007', name:'POLLUX',     reg:'VX-ANT007', type:'B77F', cls:'EXPANSION I',   mtow:347810, range:9045, role:'EU-US TRUNK',      status:'ACTIVE',       emblem:'NEBULA ARC',     year:2020, base:'AMS — Amsterdam Schiphol' },
+      { id:'VAN008', name:'PROCYON',    reg:'VX-ANT008', type:'B77F', cls:'EXPANSION I',   mtow:347810, range:8750, role:'EU-MEA',           status:'ACTIVE',       emblem:'NEBULA ARC',     year:2021, base:'CDG — Paris Charles de Gaulle' },
+      { id:'VAN009', name:'CAPELLA',    reg:'VX-ANT009', type:'B77F', cls:'EXPANSION I',   mtow:347810, range:9045, role:'MEA CORE',         status:'MAINTENANCE',  emblem:'NEBULA ARC',     year:2021, base:'DXB — Dubai Intl' },
+      { id:'VAN010', name:'ALDEBARAN',  reg:'VX-ANT010', type:'B77F', cls:'EXPANSION I',   mtow:347810, range:9045, role:'MEA-APAC BRIDGE',  status:'ACTIVE',       emblem:'NEBULA ARC',     year:2021, base:'DOH — Doha Hamad' },
+      { id:'VAN011', name:'SPICA',      reg:'VX-ANT011', type:'B77F', cls:'EXPANSION II',  mtow:347810, range:9045, role:'E-COMMERCE XPR',   status:'ACTIVE',       emblem:'COMET STRIKE',   year:2021, base:'PVG — Shanghai Pudong' },
+      { id:'VAN012', name:'ANTARES',    reg:'VX-ANT012', type:'B77F', cls:'EXPANSION II',  mtow:347810, range:9045, role:'E-COMMERCE XPR',   status:'ACTIVE',       emblem:'COMET STRIKE',   year:2022, base:'LAX — Los Angeles Intl' },
+      { id:'VAN013', name:'FOMALHAUT',  reg:'VX-ANT013', type:'B77F', cls:'EXPANSION II',  mtow:347810, range:8900, role:'E-COMMERCE',       status:'CHARTER',      emblem:'COMET STRIKE',   year:2022, base:'MEM — Memphis Intl' },
+      { id:'VAN014', name:'MIMOSA',     reg:'VX-ANT014', type:'B77F', cls:'EXPANSION II',  mtow:347810, range:9045, role:'E-COMMERCE',       status:'ACTIVE',       emblem:'COMET STRIKE',   year:2022, base:'CVG — Cincinnati Northern KY' },
+      { id:'VAN015', name:'HADAR',      reg:'VX-ANT015', type:'B77F', cls:'EXPANSION II',  mtow:347810, range:9045, role:'E-COMMERCE XPR',   status:'MAINTENANCE',  emblem:'COMET STRIKE',   year:2022, base:'SZX — Shenzhen Bao\'an' },
+      { id:'VAN016', name:'ACRUX',      reg:'VX-ANT016', type:'B77F', cls:'MERIDIAN',      mtow:347810, range:9045, role:'PHARMA COLD',      status:'ACTIVE',       emblem:'MERIDIAN CROSS', year:2022, base:'BRU — Brussels Airport' },
+      { id:'VAN017', name:'GACRUX',     reg:'VX-ANT017', type:'B77F', cls:'MERIDIAN',      mtow:347810, range:9045, role:'HIGH-VALUE SEC',   status:'ACTIVE',       emblem:'MERIDIAN CROSS', year:2023, base:'ZRH — Zurich Airport' },
+      { id:'VAN018', name:'MIZAR',      reg:'VX-ANT018', type:'B77F', cls:'MERIDIAN',      mtow:347810, range:9045, role:'PHARMA BRIDGE',    status:'ACTIVE',       emblem:'MERIDIAN CROSS', year:2023, base:'MXP — Milan Malpensa' },
+      { id:'VAN019', name:'ALIOTH',     reg:'VX-ANT019', type:'B77F', cls:'MERIDIAN',      mtow:347810, range:9045, role:'HIGH-VALUE VAULT', status:'MAINTENANCE',  emblem:'MERIDIAN CROSS', year:2023, base:'LUX — Luxembourg Findel' },
+      { id:'VAN020', name:'ALKAID',     reg:'VX-ANT020', type:'B77F', cls:'MERIDIAN',      mtow:347810, range:9045, role:'PHARMA EXPRESS',   status:'ACTIVE',       emblem:'MERIDIAN CROSS', year:2023, base:'LGG — Liège Airport' },
+      { id:'VAN021', name:'ELNATH',     reg:'VX-ANT021', type:'B77F', cls:'NOVA',          mtow:347810, range:9045, role:'PERISHABLE COLD',  status:'ACTIVE',       emblem:'NOVA BURST',     year:2023, base:'NBO — Nairobi Jomo Kenyatta' },
+      { id:'VAN022', name:'ALHENA',     reg:'VX-ANT022', type:'B77F', cls:'NOVA',          mtow:347810, range:9045, role:'COLD CHAIN XPR',   status:'ACTIVE',       emblem:'NOVA BURST',     year:2024, base:'BOG — Bogotá El Dorado' },
+      { id:'VAN023', name:'TEJAT',      reg:'VX-ANT023', type:'B77F', cls:'NOVA',          mtow:347810, range:8900, role:'PERISHABLE REG',   status:'STANDBY',      emblem:'NOVA BURST',     year:2024, base:'SCL — Santiago Arturo Merino' },
+      { id:'VAN024', name:'PROPUS',     reg:'VX-ANT024', type:'B77F', cls:'NOVA',          mtow:347810, range:9045, role:'COLD CHAIN',       status:'ACTIVE',       emblem:'NOVA BURST',     year:2024, base:'ADD — Addis Ababa Bole' },
+      { id:'VAN025', name:'MIRZAM',     reg:'VX-ANT025', type:'B77F', cls:'NOVA',          mtow:347810, range:9045, role:'PERISHABLE XPR',   status:'ACTIVE',       emblem:'NOVA BURST',     year:2024, base:'LIM — Lima Jorge Chávez' },
+      { id:'VAN026', name:'PHACT',      reg:'VX-ANT026', type:'B77F', cls:'APEX',          mtow:347810, range:9045, role:'FULL FREIGHTER',   status:'ACTIVE',       emblem:'APEX VECTOR',    year:2024, base:'ANC — Anchorage Ted Stevens' },
+      { id:'VAN027', name:'NAOS',       reg:'VX-ANT027', type:'B77F', cls:'APEX',          mtow:347810, range:9045, role:'FULL FREIGHTER',   status:'ACTIVE',       emblem:'APEX VECTOR',    year:2025, base:'DFW — Dallas/Fort Worth' },
+      { id:'VAN028', name:'REGOR',      reg:'VX-ANT028', type:'B77F', cls:'APEX',          mtow:347810, range:9200, role:'FULL FREIGHTER',   status:'ACTIVE',       emblem:'APEX VECTOR',    year:2025, base:'ORD — Chicago O\'Hare' },
+      { id:'VAN029', name:'SUHAIL',     reg:'VX-ANT029', type:'B77F', cls:'APEX',          mtow:347810, range:9045, role:'FULL FREIGHTER',   status:'ACTIVE',       emblem:'APEX VECTOR',    year:2025, base:'ATL — Atlanta Hartsfield-Jackson' },
+      { id:'VAN030', name:'TUREIS',     reg:'VX-ANT030', type:'B77F', cls:'APEX',          mtow:347810, range:9045, role:'FULL FREIGHTER',   status:'IN DELIVERY',  emblem:'APEX VECTOR',    year:2025, base:'MIA — Miami Intl' },
+    ];
+
+    let FLEET = [...FLEET_LOCAL];
+
+    const CLASS_COLORS = {
+      'FOUNDING': '#f59e0b', 'EXPANSION I': '#3b82f6', 'EXPANSION II': '#06b6d4',
+      'MERIDIAN': '#8b5cf6', 'NOVA': '#10b981', 'APEX': '#f1f0ff'
+    };
+    const CLASS_KEY = {
+      'FOUNDING':'FOUNDING','EXPANSION I':'EXPANSION_I','EXPANSION II':'EXPANSION_II',
+      'MERIDIAN':'MERIDIAN','NOVA':'NOVA','APEX':'APEX'
+    };
+    const STATUS_KEY = {
+      'ACTIVE':'ACTIVE','MAINTENANCE':'MAINTENANCE','CHARTER':'CHARTER',
+      'STANDBY':'STANDBY','IN DELIVERY':'DELIVERY'
+    };
+
+    // ─── STATE ───
+    let sortCol = 'id', sortDir = 'asc';
+    let filteredFleet = [...FLEET];
+    let currentView = 'registry';
+
+    // ─── API DATA LAYER STATE ───
+    let apiConfig = {
+      mode: 'local',
+      url: '',
+      pollInterval: 30,
+      apiKey: '',
+      lastSync: null
+    };
+    let apiPollTimer = null;
+
+    // ─── PERSISTENCE: Load saved state ───
+    function loadSavedState() {
+      try {
+        const savedView = localStorage.getItem('vantis-view');
+        if (savedView && ['registry','cards','emblems'].includes(savedView)) {
+          currentView = savedView;
+        }
+        const savedFilters = localStorage.getItem('vantis-filters');
+        if (savedFilters) {
+          const f = JSON.parse(savedFilters);
+          if (f.search) document.getElementById('search-input-s1q4').value = f.search;
+          if (f.cls) document.getElementById('filter-class-f5c2').value = f.cls;
+          if (f.status) document.getElementById('filter-status-f6s3').value = f.status;
+          if (f.role) document.getElementById('filter-role-f7r4').value = f.role;
+        }
+        const savedApi = localStorage.getItem('vantis-api-config');
+        if (savedApi) {
+          apiConfig = JSON.parse(savedApi);
+          applyApiConfigToUI();
+        }
+      } catch(e) { /* ignore */ }
+    }
+
+    function saveFilters() {
+      try {
+        localStorage.setItem('vantis-filters', JSON.stringify({
+          search: document.getElementById('search-input-s1q4').value,
+          cls: document.getElementById('filter-class-f5c2').value,
+          status: document.getElementById('filter-status-f6s3').value,
+          role: document.getElementById('filter-role-f7r4').value,
+        }));
+      } catch(e) {}
+    }
+
+    function saveView() {
+      try { localStorage.setItem('vantis-view', currentView); } catch(e) {}
+    }
+
+    function saveApiConfig() {
+      try { localStorage.setItem('vantis-api-config', JSON.stringify(apiConfig)); } catch(e) {}
+    }
+
+    function applyApiConfigToUI() {
+      document.querySelectorAll('input[name="api-mode"]').forEach(r => {
+        r.checked = r.value === apiConfig.mode;
+      });
+      document.getElementById('api-url-input-au1').value = apiConfig.url || '';
+      document.getElementById('api-poll-input-ap1').value = apiConfig.pollInterval || 30;
+      document.getElementById('api-key-input-ak1').value = apiConfig.apiKey || '';
+      if (apiConfig.lastSync) {
+        document.getElementById('api-last-sync-als1').textContent = new Date(apiConfig.lastSync).toISOString().slice(0,19) + 'Z';
+      }
+      updateSyncIndicator();
+    }
+
+    function updateSyncIndicator() {
+      const el = document.getElementById('sync-indicator-si1');
+      const statusEl = document.getElementById('api-status-as1');
+      if (apiConfig.mode === 'remote' && apiConfig.url) {
+        el.className = 'sync-pill sync-live';
+        el.innerHTML = '<span class="live-dot" style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block"></span>LIVE';
+        statusEl.textContent = 'REMOTE API ACTIVE';
+        statusEl.style.color = '#10b981';
+      } else {
+        el.className = 'sync-pill sync-local';
+        el.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#6b7280;display:inline-block"></span>LOCAL';
+        statusEl.textContent = 'LOCAL DATA ACTIVE';
+        statusEl.style.color = '#9ca3af';
+      }
+    }
+
+    async function fetchRemoteFleet() {
+      if (apiConfig.mode !== 'remote' || !apiConfig.url) return false;
+      try {
+        const headers = {};
+        if (apiConfig.apiKey) headers['X-API-Key'] = apiConfig.apiKey;
+        const resp = await fetch(apiConfig.url, { headers });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) {
+          FLEET = data;
+          apiConfig.lastSync = Date.now();
+          saveApiConfig();
+          document.getElementById('api-last-sync-als1').textContent = new Date(apiConfig.lastSync).toISOString().slice(0,19) + 'Z';
+          applyFilters();
+          return data.length;
+        }
+        throw new Error('Invalid data format');
+      } catch(e) {
+        return e;
+      }
+    }
+
+    function startPolling() {
+      stopPolling();
+      if (apiConfig.mode === 'remote' && apiConfig.url && apiConfig.pollInterval > 0) {
+        apiPollTimer = setInterval(() => { fetchRemoteFleet(); }, apiConfig.pollInterval * 1000);
+      }
+    }
+
+    function stopPolling() {
+      if (apiPollTimer) { clearInterval(apiPollTimer); apiPollTimer = null; }
+    }
+
+    // ─── UTILITY ───
+    function fmt(n) { return n.toLocaleString(); }
+    function getNum(id) { return parseInt(id.replace('VAN',''),10); }
+    function getVamsysId(f) { return `VMS-${String(getNum(f.id)).padStart(3,'0')}-B77F-ANT`; }
+    function getTags(f) {
+      const tags = [];
+      if (f.role.includes('TRUNK') || f.role.includes('HUB') || f.role.includes('BRIDGE') || f.role.includes('LINK')) tags.push('TRUNK ROUTE');
+      if (f.role.includes('E-COMMERCE') || f.role.includes('XPR')) tags.push('E-COMMERCE');
+      if (f.role.includes('PHARMA')) tags.push('PHARMA');
+      if (f.role.includes('COLD') || f.role.includes('PERISHABLE')) tags.push('COLD CHAIN');
+      if (f.role.includes('HIGH-VALUE') || f.role.includes('VAULT') || f.role.includes('SEC')) tags.push('HIGH-VALUE');
+      if (f.role.includes('FULL FREIGHTER')) tags.push('FULL FREIGHTER');
+      if (f.role.includes('TRANSATLANTIC') || f.role.includes('EU-US') || f.role.includes('EU-MEA') || f.role.includes('MEA')) tags.push('INTERCONTINENTAL');
+      if (f.role.includes('APAC') || f.role.includes('PACIFIC')) tags.push('APAC');
+      tags.push(f.cls + ' FRAME');
+      return tags;
+    }
+
+    // ─── FILTERING ───
+    function applyFilters() {
+      const search = document.getElementById('search-input-s1q4').value.toLowerCase();
+      const fClass = document.getElementById('filter-class-f5c2').value;
+      const fStatus = document.getElementById('filter-status-f6s3').value;
+      const fRole = document.getElementById('filter-role-f7r4').value;
+
+      filteredFleet = FLEET.filter(f => {
+        if (search && !(f.name.toLowerCase().includes(search) || f.reg.toLowerCase().includes(search) || f.cls.toLowerCase().includes(search) || f.id.toLowerCase().includes(search) || f.role.toLowerCase().includes(search))) return false;
+        if (fClass && f.cls !== fClass) return false;
+        if (fStatus && f.status !== fStatus) return false;
+        if (fRole && !f.role.toUpperCase().includes(fRole.toUpperCase())) return false;
+        return true;
+      });
+
+      filteredFleet.sort((a, b) => {
+        let va, vb;
+        switch(sortCol) {
+          case 'id': va = getNum(a.id); vb = getNum(b.id); break;
+          case 'name': va = a.name; vb = b.name; break;
+          case 'reg': va = a.reg; vb = b.reg; break;
+          case 'class': va = a.cls; vb = b.cls; break;
+          case 'mtow': va = a.mtow; vb = b.mtow; break;
+          case 'range': va = a.range; vb = b.range; break;
+          case 'status': va = a.status; vb = b.status; break;
+          case 'year': va = a.year; vb = b.year; break;
+          default: va = getNum(a.id); vb = getNum(b.id);
+        }
+        if (typeof va === 'string') {
+          return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        }
+        return sortDir === 'asc' ? va - vb : vb - va;
+      });
+
+      saveFilters();
+      renderAll();
+    }
+
+    // ─── STATUS PILLS ───
+    function renderStatusPills() {
+      const counts = { ACTIVE:0, MAINTENANCE:0, STANDBY:0, CHARTER:0, 'IN DELIVERY':0 };
+      filteredFleet.forEach(f => { if (counts[f.status] !== undefined) counts[f.status]++; });
+      const el = document.getElementById('status-pills-s7m3');
+      el.innerHTML = `
+        <span class="status-pill status-ACTIVE"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block"></span>${counts.ACTIVE}</span>
+        <span class="status-pill status-MAINTENANCE"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block"></span>${counts.MAINTENANCE}</span>
+        <span class="status-pill status-STANDBY"><span style="width:6px;height:6px;border-radius:50%;background:#6b7280;display:inline-block"></span>${counts.STANDBY}</span>
+        <span class="status-pill status-CHARTER"><span style="width:6px;height:6px;border-radius:50%;background:#3b82f6;display:inline-block"></span>${counts.CHARTER}</span>
+        <span class="status-pill status-DELIVERY"><span style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;display:inline-block"></span>${counts['IN DELIVERY']}</span>
+      `;
+    }
+
+    // ─── RENDER TABLE ───
+    function renderTable() {
+      const tbody = document.getElementById('table-body-b4d6');
+      tbody.innerHTML = filteredFleet.map((f, i) => {
+        const sk = STATUS_KEY[f.status] || 'ACTIVE';
+        const ck = CLASS_KEY[f.cls] || 'FOUNDING';
+        return `<tr class="border-b border-vborder/50 hover:bg-vbg-4/60 cursor-pointer transition-colors ${i%2===0?'bg-vbg-2/30':'bg-vbg-3/30'}" data-frame="${f.id}">
+          <td class="px-3 py-2.5 font-bold text-vviolet-light">${f.id}</td>
+          <td class="px-3 py-2.5 font-raj font-semibold text-sm tracking-wide">${f.name}</td>
+          <td class="px-3 py-2.5 text-vtext-2">${f.reg}</td>
+          <td class="px-3 py-2.5 text-vtext-3 hidden md:table-cell">${f.type}</td>
+          <td class="px-3 py-2.5"><span class="class-badge class-${ck}">${f.cls}</span></td>
+          <td class="px-3 py-2.5 text-right tabular-nums hidden lg:table-cell">${fmt(f.mtow)} KG</td>
+          <td class="px-3 py-2.5 text-right tabular-nums hidden lg:table-cell">${fmt(f.range)} KM</td>
+          <td class="px-3 py-2.5 text-vtext-2 hidden md:table-cell">${f.role}</td>
+          <td class="px-3 py-2.5"><span class="status-pill status-${sk}"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>${f.status}</span></td>
+          <td class="px-3 py-2.5 text-vtext-3 hidden lg:table-cell" style="font-size:10px">${f.emblem}</td>
+          <td class="px-3 py-2.5 text-vtext-3 hidden md:table-cell tabular-nums">${f.year}</td>
+        </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('tr[data-frame]').forEach(row => {
+        row.addEventListener('click', () => {
+          const frameId = row.dataset.frame;
+          switchView('cards');
+          setTimeout(() => {
+            const card = document.getElementById('card-' + frameId);
+            if (card) {
+              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              card.classList.add('highlighted');
+              setTimeout(() => card.classList.remove('highlighted'), 4500);
+            }
+          }, 350);
+        });
+      });
+    }
+
+    // ─── RENDER CARDS ───
+    function renderCards() {
+      const grid = document.getElementById('cards-grid-g5e7');
+      grid.innerHTML = filteredFleet.map(f => {
+        const sk = STATUS_KEY[f.status] || 'ACTIVE';
+        const ck = CLASS_KEY[f.cls] || 'FOUNDING';
+        const clr = CLASS_COLORS[f.cls];
+        const tags = getTags(f);
+        const vamsysId = getVamsysId(f);
+        return `<div class="fleet-card p-4 md:p-5" id="card-${f.id}">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:${clr}22;border:1px solid ${clr}44">
+                <span class="font-raj font-bold text-sm" style="color:${clr}">V</span>
+              </div>
+              <div>
+                <span class="font-mono text-[10px] text-vviolet-light tracking-wider">${f.id}</span>
+                <span class="font-mono text-[9px] text-vtext-3 ml-1">· ${f.cls}</span>
+              </div>
+            </div>
+            <span class="status-pill status-${sk}"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>${f.status}</span>
+          </div>
+          <div class="border-t border-vborder/50 pt-3 mb-3">
+            <h3 class="font-raj font-bold text-xl md:text-2xl tracking-wider" style="color:${clr}">${f.name}</h3>
+            <p class="font-mono text-[11px] text-vtext-2">Boeing 777F</p>
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
+            <div><span class="hud-label">REG</span><div class="hud-value">${f.reg}</div></div>
+            <div><span class="hud-label">TYPE</span><div class="hud-value">${f.type}</div></div>
+            <div><span class="hud-label">MTOW</span><div class="hud-value">${fmt(f.mtow)} KG</div></div>
+            <div><span class="hud-label">RANGE</span><div class="hud-value">${fmt(f.range)} KM</div></div>
+            <div><span class="hud-label">ROLE</span><div class="hud-value text-[11px]">${f.role}</div></div>
+            <div><span class="hud-label">ENTRY</span><div class="hud-value">${f.year}</div></div>
+          </div>
+          <div class="border-t border-vborder/50 pt-2 mb-2 print-emblem-section">
+            <span class="hud-label">EMBLEM</span>
+            <div class="font-mono text-[11px] text-vtext-2 mt-0.5">${f.emblem}</div>
+          </div>
+          <div class="border-t border-vborder/50 pt-2 mb-3 print-tags-section">
+            <span class="hud-label block mb-1">OPERATIONAL TAGS</span>
+            <div class="flex flex-wrap gap-1">${tags.map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>
+          </div>
+          <div class="border-t border-vborder/50 pt-2 flex items-center justify-between print-vamsys-section">
+            <div>
+              <span class="hud-label">VAMSYS ID</span>
+              <div class="font-mono text-[10px] text-vtext-3 mt-0.5">${vamsysId}</div>
+            </div>
+            <button class="detail-toggle text-[10px] font-mono text-vviolet-light border border-vborder rounded px-2 py-1 hover:bg-vviolet-base/10 transition-colors" data-target="detail-${f.id}">
+              <i data-lucide="chevron-down" class="w-3 h-3 inline align-middle mr-1"></i>DETAIL
+            </button>
+          </div>
+          <div class="font-mono text-[9px] text-vtext-3 mt-1">LAST UPDATED: 2026-06-20T00:57Z</div>
+          <div class="detail-panel border-t border-vborder/50 mt-2 print-specs-section" id="detail-${f.id}">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              <div><span class="hud-label">PAYLOAD</span><div class="hud-value text-[11px]">102,000 KG</div></div>
+              <div><span class="hud-label">ENGINES</span><div class="hud-value text-[11px]">2× GE90-115B</div></div>
+              <div><span class="hud-label">WINGSPAN</span><div class="hud-value text-[11px]">64.8 M</div></div>
+              <div><span class="hud-label">FUSELAGE</span><div class="hud-value text-[11px]">63.7 M</div></div>
+              <div><span class="hud-label">MAX ALT</span><div class="hud-value text-[11px]">FL430</div></div>
+              <div><span class="hud-label">OPERATOR</span><div class="hud-value text-[11px]">VANTIS AIR CARGO</div></div>
+              <div class="col-span-2"><span class="hud-label">BASE STATION</span><div class="hud-value text-[11px]">${f.base}</div></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      grid.querySelectorAll('.detail-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            target.classList.toggle('open');
+            const icon = btn.querySelector('[data-lucide]');
+            if (icon) {
+              const isOpen = target.classList.contains('open');
+              icon.setAttribute('data-lucide', isOpen ? 'chevron-up' : 'chevron-down');
+              if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+              }
+            }
+          }
+        });
+      });
+    }
+
+    // ─── EMBLEM SVGs ───
+    const EMBLEMS = [
+      {
+        name: 'STELLAR CROWN', cls: 'FOUNDING', frames: 'VAN001–VAN005', count: 5, color: '#f59e0b',
+        desc: 'Awarded to the founding fleet — the five stars represent the inaugural launch corridors of the VANTIS APAC trunk network. The crown symbolizes operational seniority.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg1" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg1)"/>
+          <g transform="translate(100,60)">
+            ${[[-48,-10],[-24,-22],[0,-28],[24,-22],[48,-10]].map(([x,y])=>`<polygon points="${x},${y} ${x+4},${y+8} ${x+12},${y+8} ${x+6},${y+14} ${x+8},${y+22} ${x},${y+17} ${x-8},${y+22} ${x-6},${y+14} ${x-12},${y+8} ${x-4},${y+8}" fill="#f59e0b" opacity="0.9"/>`).join('')}
+            <path d="M-40,10 Q-20,-5 0,-10 Q20,-5 40,10" fill="none" stroke="#7c3aed" stroke-width="2" opacity="0.6"/>
+          </g>
+          <text x="100" y="140" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="52" fill="white" opacity="0.95">V</text>
+          <text x="100" y="180" text-anchor="middle" font-family="Space Mono,monospace" font-size="9" fill="#f59e0b" letter-spacing="3">STELLAR CROWN</text>
+        </svg>`
+      },
+      {
+        name: 'NEBULA ARC', cls: 'EXPANSION I', frames: 'VAN006–VAN010', count: 5, color: '#3b82f6',
+        desc: 'The Nebula Arc marks the first intercontinental expansion wave — the arc represents bridging hemispheres across transatlantic and MEA corridors.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient>
+          <linearGradient id="eg2a" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.8"/><stop offset="50%" stop-color="#3b82f6" stop-opacity="0.9"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0.3"/></linearGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg2)"/>
+          <path d="M30,120 Q60,40 100,35 Q140,40 170,120" fill="none" stroke="url(#eg2a)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40,115 Q65,50 100,45 Q135,50 160,115" fill="none" stroke="url(#eg2a)" stroke-width="2" opacity="0.4"/>
+          <path d="M50,110 Q70,60 100,55 Q130,60 150,110" fill="none" stroke="url(#eg2a)" stroke-width="1" opacity="0.2"/>
+          <text x="100" y="130" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="48" fill="white" opacity="0.95">V</text>
+          <text x="100" y="178" text-anchor="middle" font-family="Space Mono,monospace" font-size="9" fill="#3b82f6" letter-spacing="3">NEBULA ARC</text>
+        </svg>`
+      },
+      {
+        name: 'COMET STRIKE', cls: 'EXPANSION II', frames: 'VAN011–VAN015', count: 5, color: '#06b6d4',
+        desc: 'Speed-first designation for the E-Commerce Express network. The comet strike emblem reflects sub-48-hour delivery commitment across all assigned sectors.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg3" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient>
+          <linearGradient id="eg3a" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="transparent"/><stop offset="40%" stop-color="#7c3aed" stop-opacity="0.5"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg3)"/>
+          <line x1="30" y1="170" x2="150" y2="50" stroke="url(#eg3a)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="40" y1="165" x2="145" y2="55" stroke="url(#eg3a)" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="150" cy="50" r="12" fill="#22d3ee" opacity="0.3"/><circle cx="150" cy="50" r="6" fill="#22d3ee" opacity="0.7"/>
+          <circle cx="150" cy="50" r="3" fill="white"/>
+          <text x="100" y="130" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="48" fill="white" opacity="0.95">V</text>
+          <text x="100" y="178" text-anchor="middle" font-family="Space Mono,monospace" font-size="9" fill="#06b6d4" letter-spacing="3">COMET STRIKE</text>
+        </svg>`
+      },
+      {
+        name: 'MERIDIAN CROSS', cls: 'MERIDIAN', frames: 'VAN016–VAN020', count: 5, color: '#8b5cf6',
+        desc: 'Precision designation for the Pharma & High-Value Secure division. The Meridian Cross signifies exacting compliance with cold-chain and security protocols.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg4" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg4)"/>
+          <line x1="100" y1="30" x2="100" y2="170" stroke="#8b5cf6" stroke-width="1.5" opacity="0.6"/>
+          <line x1="30" y1="100" x2="170" y2="100" stroke="#8b5cf6" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="100" cy="100" r="40" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0.25"/>
+          <circle cx="100" cy="100" r="55" fill="none" stroke="#8b5cf6" stroke-width="0.5" opacity="0.15"/>
+          <polygon points="100,55 105,60 100,65 95,60" fill="white" opacity="0.8"/>
+          <polygon points="100,135 105,140 100,145 95,140" fill="white" opacity="0.8"/>
+          <polygon points="55,100 60,105 65,100 60,95" fill="white" opacity="0.8"/>
+          <polygon points="135,100 140,105 145,100 140,95" fill="white" opacity="0.8"/>
+          <text x="100" y="112" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="36" fill="white" opacity="0.95">V</text>
+          <text x="100" y="185" text-anchor="middle" font-family="Space Mono,monospace" font-size="8" fill="#8b5cf6" letter-spacing="2">MERIDIAN CROSS</text>
+        </svg>`
+      },
+      {
+        name: 'NOVA BURST', cls: 'NOVA', frames: 'VAN021–VAN025', count: 5, color: '#10b981',
+        desc: 'Cold-chain specialist designation. The Nova Burst represents rapid thermal deployment capability and perishable cargo priority handling on all assigned routes.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg5" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg5)"/>
+          ${[0,45,90,135,180,225,270,315].map(a => {
+            const rad = a * Math.PI / 180;
+            const x1 = 100 + Math.cos(rad)*25, y1 = 100 + Math.sin(rad)*25;
+            const x2 = 100 + Math.cos(rad)*65, y2 = 100 + Math.sin(rad)*65;
+            return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${a%90===0?'#22d3ee':'#8b5cf6'}" stroke-width="${a%90===0?2:1.2}" opacity="${a%90===0?0.8:0.5}" stroke-linecap="round"/>`;
+          }).join('')}
+          <circle cx="100" cy="100" r="22" fill="#0a0a14" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+          <text x="100" y="110" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="30" fill="white" opacity="0.95">V</text>
+          <text x="100" y="182" text-anchor="middle" font-family="Space Mono,monospace" font-size="9" fill="#10b981" letter-spacing="3">NOVA BURST</text>
+        </svg>`
+      },
+      {
+        name: 'APEX VECTOR', cls: 'APEX', frames: 'VAN026–VAN030', count: 5, color: '#f1f0ff',
+        desc: 'The newest frames in the VANTIS fleet. The Apex Vector designates full-capacity operation with the latest avionics package and maximum range configuration.',
+        svg: `<svg viewBox="0 0 200 200" class="emblem-svg" width="200" height="200">
+          <defs><radialGradient id="eg6" cx="50%" cy="50%"><stop offset="0%" stop-color="#1a1a2e"/><stop offset="100%" stop-color="#0a0a14"/></radialGradient></defs>
+          <rect width="200" height="200" rx="16" fill="url(#eg6)"/>
+          <path d="M100,40 L155,120 L130,120 L130,155 L70,155 L70,120 L45,120 Z" fill="none" stroke="#f1f0ff" stroke-width="2" opacity="0.8"/>
+          <path d="M100,55 L145,120 L125,120 L125,145 L75,145 L75,120 L55,120 Z" fill="none" stroke="#f1f0ff" stroke-width="0.8" opacity="0.3"/>
+          <text x="100" y="125" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="36" fill="#7c3aed" opacity="0.95">V</text>
+          <text x="100" y="180" text-anchor="middle" font-family="Space Mono,monospace" font-size="9" fill="#f1f0ff" letter-spacing="3">APEX VECTOR</text>
+        </svg>`
+      }
+    ];
+
+    function renderEmblems() {
+      const grid = document.getElementById('emblems-grid-g6f8');
+      grid.innerHTML = EMBLEMS.map(e => {
+        return `<div class="emblem-card fleet-card p-5 md:p-6 text-center">
+          <div class="flex justify-center mb-4">${e.svg}</div>
+          <h3 class="font-raj font-bold text-xl tracking-wider mb-1" style="color:${e.color}">${e.name}</h3>
+          <p class="font-mono text-[10px] text-vtext-3 tracking-wider mb-1">${e.frames} · ${e.cls}</p>
+          <span class="class-badge class-${CLASS_KEY[e.cls]}">${e.cls}</span>
+          <p class="font-inter text-xs text-vtext-2 mt-4 leading-relaxed text-left">${e.desc}</p>
+          <div class="mt-4 pt-3 border-t border-vborder/50 flex justify-between items-center">
+            <span class="hud-label">AIRFRAMES</span>
+            <span class="font-mono text-lg font-bold" style="color:${e.color}">${e.count}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── VIEW SWITCHING ───
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn[data-view]').forEach(b => b.classList.remove('active'));
+
+      const panel = document.getElementById('view-' + view + '-' + {registry:'v1a1',cards:'v2b2',emblems:'v3c3'}[view]);
+      if (panel) {
+        panel.classList.add('active');
+      }
+      document.querySelectorAll(`.tab-btn[data-view="${view}"]`).forEach(b => b.classList.add('active'));
+      saveView();
+    }
+
+    // ─── RENDER ALL ───
+    function renderAll() {
+      renderStatusPills();
+      renderTable();
+      renderCards();
+      renderEmblems();
+      document.getElementById('result-count-r8c5').textContent = filteredFleet.length + ' FRAMES REGISTERED';
+      if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }
+
+    // ─── CLOCK ───
+    function updateClock() {
+      const now = new Date();
+      const utc = now.toISOString().slice(11,19);
+      const local = now.toLocaleTimeString('en-US', { hour12: false, timeZone: 'America/New_York' });
+      document.getElementById('live-clock-c9k1').textContent = utc + ' UTC · ' + local + ' EDT';
+      requestAnimationFrame(updateClock);
+    }
+
+    // ─── EXPORT ───
+    function generateExport() {
+      let text = '╔══════════════════════════════════════════════════════════════╗\n';
+      text += '║  VANTIS AIR CARGO — FLEET REGISTRY EXPORT                    ║\n';
+      text += '║  VAMSYS Fleet Intelligence Platform                           ║\n';
+      text += '║  Generated: ' + new Date().toISOString() + '                  ║\n';
+      text += '╚══════════════════════════════════════════════════════════════╝\n\n';
+      text += `Total Frames: ${filteredFleet.length}\n\n`;
+      text += '─'.repeat(64) + '\n';
+      filteredFleet.forEach(f => {
+        text += `${f.id} | ${f.name.padEnd(12)} | ${f.reg} | ${f.type} | ${f.cls.padEnd(14)} | ${f.status}\n`;
+        text += `       ROLE: ${f.role} | MTOW: ${fmt(f.mtow)} KG | RANGE: ${fmt(f.range)} KM | YEAR: ${f.year}\n`;
+        text += `       VAMSYS: ${getVamsysId(f)} | EMBLEM: ${f.emblem}\n`;
+        text += '─'.repeat(64) + '\n';
+      });
+      text += '\n© 2026 VANTIS INTERSTELLAR OPERATIONS\nCLASSIFICATION: INTERNAL — AIRGRID INTELLIGENCE PLATFORM\n';
+      return text;
+    }
+
+    // ─── INIT ───
+    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+
+    // Load saved state before first render
+    loadSavedState();
+
+    // Tab navigation
+    document.querySelectorAll('.tab-btn[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+
+    // Filters
+    document.getElementById('search-input-s1q4').addEventListener('input', applyFilters);
+    document.getElementById('filter-class-f5c2').addEventListener('change', applyFilters);
+    document.getElementById('filter-status-f6s3').addEventListener('change', applyFilters);
+    document.getElementById('filter-role-f7r4').addEventListener('change', applyFilters);
+
+    // Table sort
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.sort;
+        if (sortCol === col) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortCol = col;
+          sortDir = 'asc';
+        }
+        applyFilters();
+      });
+    });
+
+    // Export text
+    document.getElementById('export-btn-e3k7').addEventListener('click', () => {
+      document.getElementById('export-content-c3z5').textContent = generateExport();
+      document.getElementById('export-modal-m9z1').classList.add('open');
+    });
+    document.getElementById('modal-close-x2y4').addEventListener('click', () => {
+      document.getElementById('export-modal-m9z1').classList.remove('open');
+    });
+    document.getElementById('export-modal-m9z1').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        e.currentTarget.classList.remove('open');
+      }
+    });
+
+    // ─── EXPORT HTML (self-hosting) ───
+    document.getElementById('export-html-btn-eh1').addEventListener('click', () => {
+      const html = document.documentElement.outerHTML;
+      const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'VANTIS-VAMSYS-Fleet-v2.6.0.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // ─── API CONFIG PANEL ───
+    const apiPanel = document.getElementById('api-config-panel');
+    const apiBackdrop = document.getElementById('api-config-backdrop');
+
+    document.getElementById('api-config-btn-ac1').addEventListener('click', () => {
+      apiPanel.classList.add('open');
+      apiBackdrop.classList.add('open');
+    });
+    document.getElementById('api-panel-close-apc1').addEventListener('click', () => {
+      apiPanel.classList.remove('open');
+      apiBackdrop.classList.remove('open');
+    });
+    apiBackdrop.addEventListener('click', () => {
+      apiPanel.classList.remove('open');
+      apiBackdrop.classList.remove('open');
+    });
+
+    // API Test Connection
+    document.getElementById('api-test-btn-at1').addEventListener('click', async () => {
+      const resultEl = document.getElementById('api-test-result-atr1');
+      const url = document.getElementById('api-url-input-au1').value.trim();
+      const apiKey = document.getElementById('api-key-input-ak1').value.trim();
+
+      if (!url) {
+        resultEl.style.color = '#ef4444';
+        resultEl.textContent = 'ERROR: NO URL PROVIDED';
+        return;
+      }
+
+      resultEl.style.color = '#f59e0b';
+      resultEl.textContent = 'TESTING CONNECTION...';
+
+      try {
+        const headers = {};
+        if (apiKey) headers['X-API-Key'] = apiKey;
+        const resp = await fetch(url, { headers });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          resultEl.style.color = '#10b981';
+          resultEl.textContent = `CONNECTION OK — ${data.length} FRAMES RECEIVED`;
+        } else {
+          throw new Error('Response is not an array');
+        }
+      } catch(e) {
+        resultEl.style.color = '#ef4444';
+        resultEl.textContent = `CONNECTION FAILED: ${e.message}`;
+      }
+    });
+
+    // API Apply & Reload
+    document.getElementById('api-apply-btn-aa1').addEventListener('click', async () => {
+      const modeEl = document.querySelector('input[name="api-mode"]:checked');
+      apiConfig.mode = modeEl ? modeEl.value : 'local';
+      apiConfig.url = document.getElementById('api-url-input-au1').value.trim();
+      apiConfig.pollInterval = parseInt(document.getElementById('api-poll-input-ap1').value) || 30;
+      apiConfig.apiKey = document.getElementById('api-key-input-ak1').value.trim();
+      saveApiConfig();
+      updateSyncIndicator();
+
+      if (apiConfig.mode === 'remote' && apiConfig.url) {
+        const result = await fetchRemoteFleet();
+        if (typeof result === 'number') {
+          startPolling();
+        } else {
+          // Fallback to local
+          FLEET = [...FLEET_LOCAL];
+          applyFilters();
+          stopPolling();
+        }
+      } else {
+        FLEET = [...FLEET_LOCAL];
+        apiConfig.mode = 'local';
+        stopPolling();
+        updateSyncIndicator();
+        applyFilters();
+      }
+
+      apiPanel.classList.remove('open');
+      apiBackdrop.classList.remove('open');
+    });
+
+    // ─── PRINT MODAL ───
+    document.getElementById('print-btn-pb1').addEventListener('click', () => {
+      document.getElementById('print-filter-count-pf1').textContent = filteredFleet.length;
+      document.getElementById('print-modal-p1m1').classList.add('open');
+    });
+    document.getElementById('print-modal-close-pc1').addEventListener('click', () => {
+      document.getElementById('print-modal-p1m1').classList.remove('open');
+    });
+    document.getElementById('print-cancel-btn-pcb1').addEventListener('click', () => {
+      document.getElementById('print-modal-p1m1').classList.remove('open');
+    });
+    document.getElementById('print-modal-p1m1').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+    });
+
+    // Print Now
+    document.getElementById('print-now-btn-pnb1').addEventListener('click', () => {
+      const scopeEl = document.querySelector('input[name="print-scope"]:checked');
+      const layoutEl = document.querySelector('input[name="print-layout"]:checked');
+      const scope = scopeEl ? scopeEl.value : 'all';
+      const layout = layoutEl ? layoutEl.value : '4';
+      const incEmblem = document.getElementById('print-inc-emblem').checked;
+      const incTags = document.getElementById('print-inc-tags').checked;
+      const incVamsys = document.getElementById('print-inc-vamsys').checked;
+      const incSpecs = document.getElementById('print-inc-specs').checked;
+
+      // Determine print fleet
+      let printFleet;
+      if (scope === 'all') {
+        printFleet = [...FLEET];
+      } else if (scope === 'active') {
+        printFleet = FLEET.filter(f => f.status === 'ACTIVE');
+      } else {
+        printFleet = [...filteredFleet];
+      }
+
+      // Temporarily replace cards with print fleet
+      const savedFiltered = [...filteredFleet];
+      filteredFleet = printFleet;
+      renderCards();
+
+      // Apply print classes
+      document.body.classList.add('print-mode');
+      document.body.classList.add(layout === '2' ? 'print-layout-2' : 'print-layout-4');
+
+      // Toggle optional sections visibility
+      if (!incEmblem) {
+        document.querySelectorAll('.print-emblem-section').forEach(el => el.style.display = 'none');
+      }
+      if (!incTags) {
+        document.querySelectorAll('.print-tags-section').forEach(el => el.style.display = 'none');
+      }
+      if (!incVamsys) {
+        document.querySelectorAll('.print-vamsys-section').forEach(el => el.style.display = 'none');
+      }
+      if (incSpecs) {
+        document.querySelectorAll('.detail-panel').forEach(el => { el.classList.add('open'); el.style.maxHeight = '300px'; });
+      }
+
+      // Close modal before print
+      document.getElementById('print-modal-p1m1').classList.remove('open');
+
+      setTimeout(() => {
+        window.print();
+
+        // Restore
+        document.body.classList.remove('print-mode', 'print-layout-2', 'print-layout-4');
+        document.querySelectorAll('.print-emblem-section, .print-tags-section, .print-vamsys-section').forEach(el => el.style.display = '');
+        if (incSpecs) {
+          document.querySelectorAll('.detail-panel').forEach(el => { el.classList.remove('open'); el.style.maxHeight = ''; });
+        }
+        filteredFleet = savedFiltered;
+        renderCards();
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      }, 500);
+    });
+
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn-m2n3');
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', () => {
+        document.getElementById('mobile-menu-m1n2').classList.remove('hidden');
+      });
+    }
+    document.getElementById('mobile-menu-close-c4d5').addEventListener('click', () => {
+      document.getElementById('mobile-menu-m1n2').classList.add('hidden');
+    });
+    document.querySelectorAll('.mobile-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchView(btn.dataset.view);
+        document.getElementById('mobile-menu-m1n2').classList.add('hidden');
+      });
+    });
+
+    // ─── INITIAL RENDER ───
+    applyFilters();
+    switchView(currentView);
+    updateClock();
+
+    // Auto-apply API config on load
+    if (apiConfig.mode === 'remote' && apiConfig.url) {
+      fetchRemoteFleet().then(result => {
+        if (typeof result === 'number') {
+          startPolling();
+        }
+      });
+    }
+    </script>
+</body>
+</html>
