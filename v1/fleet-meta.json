@@ -1,0 +1,35 @@
+{
+  "api": "VANTIS Fleet API",
+  "version": "1.0.0",
+  "generated": "2026-06-22T05:32:00Z",
+  "total_aircraft": 95,
+  "by_status": {
+    "active": 68,
+    "maintenance": 9,
+    "charter": 18
+  },
+  "by_region": {
+    "NA": 28,
+    "EU": 25,
+    "APAC": 24,
+    "LATAM": 18
+  },
+  "by_category": {
+    "ultra-long-range": 32,
+    "long-range": 24,
+    "super-midsize": 24,
+    "light": 15
+  },
+  "naming_scheme": "stellar",
+  "endpoints": {
+    "fleet": "/v1/fleet.json",
+    "fleet_meta": "/v1/fleet-meta.json",
+    "fleet_regions": "/v1/fleet-regions.json",
+    "fleet_active": "/v1/fleet-active.json",
+    "schema": "/v1/schema.json",
+    "region_na": "/v1/regions/na.json",
+    "region_eu": "/v1/regions/eu.json",
+    "region_apac": "/v1/regions/apac.json",
+    "region_latam": "/v1/regions/latam.json"
+  }
+}

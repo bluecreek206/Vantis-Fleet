@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vantis-fleet.github.io/v1/schema.json",
+  "title": "VANTIS Aircraft Record",
+  "description": "Schema for a single aircraft in the VANTIS Fleet API",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "registration",
+    "callsign",
+    "msn",
+    "type",
+    "category",
+    "seats",
+    "range_nm",
+    "status",
+    "region",
+    "home_base",
+    "position",
+    "delivered",
+    "last_service",
+    "hours_total",
+    "cycles_total"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^vnt-\\d{4}$",
+      "description": "Unique aircraft identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Stellar name assigned to the aircraft",
+      "examples": [
+        "Sirius",
+        "Vega",
+        "Arcturus"
+      ]
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft tail/registration number"
+    },
+    "callsign": {
+      "type": "string",
+      "pattern": "^VANTIS\\d{3}$",
+      "description": "Radio callsign"
+    },
+    "msn": {
+      "type": "string",
+      "pattern": "^VNT-\\d{4}$",
+      "description": "Manufacturer serial number"
+    },
+    "type": {
+      "type": "string",
+      "description": "Aircraft type/model",
+      "enum": [
+        "Gulfstream G700",
+        "Bombardier Global 7500",
+        "Dassault Falcon 10X",
+        "Gulfstream G650ER",
+        "Bombardier Global 6500",
+        "Dassault Falcon 8X",
+        "Gulfstream G500",
+        "Bombardier Challenger 650",
+        "Cessna Citation Longitude",
+        "Embraer Praetor 600",
+        "Phenom 300E",
+        "HondaJet Elite II"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "description": "Aircraft range category",
+      "enum": [
+        "ultra-long-range",
+        "long-range",
+        "super-midsize",
+        "light"
+      ]
+    },
+    "seats": {
+      "type": "integer",
+      "minimum": 4,
+      "maximum": 25,
+      "description": "Maximum passenger capacity"
+    },
+    "range_nm": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 10000,
+      "description": "Maximum range in nautical miles"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "maintenance",
+        "charter"
+      ],
+      "description": "Current operational status"
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "NA",
+        "EU",
+        "APAC",
+        "LATAM"
+      ],
+      "description": "Home region designation"
+    },
+    "home_base": {
+      "type": "string",
+      "pattern": "^[A-Z]{4}$",
+      "description": "ICAO code of home base airport"
+    },
+    "position": {
+      "type": "object",
+      "description": "Last known geographic position",
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Latitude in decimal degrees"
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Longitude in decimal degrees"
+        }
+      }
+    },
+    "delivered": {
+      "type": "string",
+      "format": "date",
+      "description": "Delivery date (ISO 8601)"
+    },
+    "last_service": {
+      "type": "string",
+      "format": "date",
+      "description": "Last maintenance service date (ISO 8601)"
+    },
+    "hours_total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total airframe flight hours"
+    },
+    "cycles_total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total takeoff/landing cycles"
+    }
+  },
+  "additionalProperties": false
+}
